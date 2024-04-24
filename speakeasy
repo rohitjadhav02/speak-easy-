@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pyscript</title>
+<link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css" />
+<script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+</head>
+<body>
+<py-script>
+class TextToSpeechApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title = "Text to Speech Converter"
+
+        self.text = "Enter text here..."
+
+        self.voice = "male"
+
+        self.speed = "medium"
+
+        self.notebook = document.createElement("div")
+        self.notebook.className = "notebook"
+        self.root.appendChild(self.notebook)
+
+        self.selectTab = document.createElement("div")
+        self.selectTab.className = "tab"
+        self.notebook.appendChild(self.selectTab)
+        self.selectTab.innerHTML = "<h2>Select</h2>"
+
+        self.createSelectTabWidgets()
+
+    def createSelectTabWidgets(self):
+        frame = document.createElement("div")
+        frame.className = "frame"
+        self.selectTab.appendChild(frame)
+
+        label = document.createElement("label")
+        label.textContent = "Select speed:"
+        frame.appendChild(label)
+
+        speedButtons = ["Low", "Medium", "High"]
+        for speed in speedButtons:
+            button = document.createElement("button")
+            button.textContent = speed
+            button.addEventListener("click", lambda event, spd=speed.lower(): self.setSpeed(spd))
+            frame.appendChild(button)
+
+    def setSpeed(self, speed):
+        self.speed = speed
+
+        if hasattr(self, 'speedTab'):
+            self.notebook.removeChild(self.speedTab)
+
+        self.speedTab = document.createElement("div")
+        self.speedTab.className = "tab"
+        self.notebook.appendChild(self.speedTab)
+        self.speedTab.innerHTML = f"<h2>{speed.upper()}</h2>"
+
+        self.createSpeedTabWidgets()
+
+    def createSpeedTabWidgets(self):
+        frame = document.createElement("div")
+        frame.className = "frame"
+        self.speedTab.appendChild(frame)
+
+        speedLabel = document.createElement("label")
+        speedLabel.textContent = f"Speed: {self.speed}"
+        frame.appendChild(speedLabel)
+
+        textLabel = document.createElement("label")
+        textLabel.textContent = "Enter text to convert to speech:"
+        frame.appendChild(textLabel)
+
+        textInput = document.createElement("textarea")
+        textInput.rows = 5
+        textInput.cols = 50
+        textInput.textContent = self.text
+        frame.appendChild(textInput)
+        self.textInput = textInput
+
+        voiceLabel = document.createElement("label")
+        voiceLabel.textContent = "Select voice:"
+        frame.appendChild(voiceLabel)
+
+        maleRadio = document.createElement("input")
+        maleRadio.type = "radio"
+        maleRadio.name = "voice"
+        maleRadio.value = "male"
+        maleRadio.checked = self.voice == "male"
+        maleRadio.addEventListener("change", lambda event: self.setVoice("male"))
+        frame.appendChild(maleRadio)
+        frame.appendChild(document.createTextNode("Male"))
+
+        femaleRadio = document.createElement("input")
+        femaleRadio.type = "radio"
+        femaleRadio.name = "voice"
+        femaleRadio.value = "female"
+        femaleRadio.checked = self.voice == "female"
+        femaleRadio.addEventListener("change", lambda event: self.setVoice("female"))
+        frame.appendChild(femaleRadio)
+        frame.appendChild(document.createTextNode("Female"))
+
+        convertButton = document.createElement("button")
+        convertButton.textContent = "Convert"
+        convertButton.addEventListener("click", lambda event: self.convertText())
+        frame.appendChild(convertButton)
+
+        saveButton = document.createElement("button")
+        saveButton.textContent = "Save Audio"
+        saveButton.addEventListener("click", lambda event: self.saveAudio())
+        frame.appendChild(saveButton)
+
+    def setVoice(self, voice):
+        self.voice = voice
+
+    def convertText(self):
+        text = self.textInput.value.trim()
+        if text == "":
+            return
+
+        utterance = new SpeechSynthesisUtterance(text)
+        utterance.rate = 0.5 if self.speed == "low" else 1 if self.speed == "medium" else 1.5
+        utterance.pitch = 1 if self.voice == "male" else 2
+
+        window.speechSynthesis.speak(utterance)
+
+    def saveAudio(self):
+        text = self.textInput.value.trim()
+        if text == "":
+            return
+
+        utterance = new SpeechSynthesisUtterance(text)
+        utterance.rate = 0.5 if self.speed == "low" else 1 if self.speed == "medium" else 1.5
+        utterance.pitch = 1 if self.voice == "male" else 2
+
+        blob = new Blob([text], { "type": "audio/mpeg" })
+        url = URL.createObjectURL(blob)
+        a = document.createElement("a")
+        a.href = url
+        a.download = "speech.mp3"
+        a.click()
+        URL.revokeObjectURL(url)
+
+def main():
+    root = document.body
+
+    app = TextToSpeechApp(root)
+
+main()
+</py-script>
+</body>
+</html>
